@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🍽️ مایرا | رژیم شما آماده است</title>
+  <style>
+    body { font-family: Tahoma, sans-serif; text-align: right; direction: rtl; padding: 20px; background: #f8f9fa; color: #333; }
+    .btn { background: #28a745; color: white; padding: 14px; border: none; border-radius: 8px; font-size: 16px; width: 100%; margin: 20px 0; }
+    h1 { color: #2c3e50; }
+    .loader { margin: 20px 0; font-size: 14px; color: #666; }
+  </style>
+</head>
+<body>
+  <h1>✅ پرداخت موفقیت‌آمیز بود</h1>
+  <p>در حال تولید رژیم غذایی شخصی‌سازی شده…</p>
+  <div class="loader">لطفاً صبر کنید…</div>
+  <button class="btn" id="downloadBtn" disabled>دریافت رژیم (PDF)</button>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const userData = {
+      name: urlParams.get('name') || 'کاربر',
+      age: urlParams.get('age'),
+      weight: urlParams.get('weight'),
+      height: urlParams.get('height'),
+      gender: urlParams.get('gender'),
+      mizaj: urlParams.get('mizaj'),
+      blood_type: urlParams.get('blood_type'),
+      goal: urlParams.get('goal'),
+      duration_weeks: urlParams.get('duration_weeks'),
+      activity: urlParams.get('activity'),
+      lactose_intolerance: urlParams.get('lactose_intolerance') === 'true',
+      gluten_free: urlParams.get('gluten_free') === 'true',
+      conditions: (urlParams.get('conditions') || '').split(',').filter(c => c)
+    };
+
+    setTimeout(() => {
+      document.querySelector('.loader').textContent = 'رژیم شما آماده شد!';
+      document.getElementById('downloadBtn').disabled = false;
+      document.getElementById('downloadBtn').onclick = downloadPlan;
+    }, 3000);
+
+    function downloadPlan() {
+      // ⚠️ جای myra-api با نام پروژه خودت در Vercel عوض کن
+      fetch('https://myra-api.vercel.app/api/generate-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      })
+      .then(response => {
+        if (response.ok) return response.blob();
+        throw new Error('خطا در تولید رژیم');
+      })
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `رژیم_غذایی_${userData.name}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      })
+      .catch(err => {
+        alert('خطا: ' + err.message);
+      });
+    }
+  </script>
+</body>
+</html>
